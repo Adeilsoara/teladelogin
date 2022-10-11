@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty(trim($_POST["username"]))) {
         $username_err = "Por favor prencha o campo";
     }elseif (!preg_match('/^[a-zA-Z0-9_]+$/', trim($_POST["username"]))) {
-        $username_err = "O usuário pode conter apenas letras, números e undeline";
+        $username_err = "O usuário pode conter apenas letras, números e underline";
     }else {
         $sql = "SELECT id FROM users WHERE username = ?";
 
@@ -33,12 +33,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty(trim($_POST["password"]))) {
-        $password_err = "Por favar preencha uma senha";
+        $password_err = "Por favor digite uma senha!";
     }elseif (strlen(trim($_POST["password"])) < 6) {
-        $password_err = "A senha deve ter ao menos 6 caracteres";
+        $password_err = "A senha deve ter pelo menos 6 caracteres";
     }else {
         $password = trim($_POST["password"]);
     }
+
+    if (empty(trim($_POST["confirm_password"]))) {
+        $password_confirm_err = "Por favor confirme a senha";
+    }else {
+        $password_confirm = trim($_POST["confirm_password"]);
+        if (empty($password_err) && ($password != $password_confirm)) {
+            $password_confirm_err = "Senha é divergente";
+        }
+    }
+    
+    if (empty($username_err) && empty($password_err) && empty($password_confirm_err)) {
+        $sql = "INSERT INTO users (username, password) VALUES (?,?)";
+
+        if ($stmt = mysqli_prepare($connection, $sql)) {
+            mysqli_stmt_bind_param($stmt,"ss", $param_username, $param_password);
+
+            $param_username = $username;
+            $param_password = password_hash($password, PASSWORD_DEFAULT);
+
+            if (mysqli_stmt_execute($stmt)) {
+                header("location: telalogin.php");
+            }else {
+                echo "Oops! Algo de errado.. tente novamente." ;
+            }
+
+            mysqli_stmt_close($stmt);
+        }
+    }
+    mysqli_close($connection);
+
 }
 
 ?>
@@ -68,13 +98,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>    
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" class="form-control" value="">
-                <span class="invalid-feedback"></span>
+                <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : '';?>" value="<?php echo $password;?>">
+                <span class="invalid-feedback"><?php echo $password_err?></span>
             </div>
             <div class="form-group">
                 <label>Confirm Password</label>
-                <input type="password" name="confirm_password" class="form-control " value="">
-                <span class="invalid-feedback"></span>
+                <input type="password" name="confirm_password" class="form-control <?php echo (!empty($password_confirm_err)) ? 'is-invalid' : '';?>" value="<?php echo $password_confirm;?>">
+                <span class="invalid-feedback"><?php echo $password_confirm_err?></span>
             </div>
             <div class="form-group">
                 <input type="submit" class="btn btn-primary" value="Submit">
