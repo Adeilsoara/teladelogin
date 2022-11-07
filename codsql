@@ -1,3 +1,19 @@
+CREATE TABLE usuario (
+nome varchar(50),
+email varchar (25),
+senha varchar (8),
+cod_usuario serial PRIMARY KEY,
+cod_curso int );
+
+CREATE TABLE emprestimo (
+hora varchar(5),
+data date,
+cod_emprestimo serial PRIMARY KEY,
+cod_atendente int,
+cod_usuario int,
+FOREIGN KEY(cod_usuario) REFERENCES usuario (cod_usuario)
+);
+
 CREATE TABLE atendente (
 nome varchar (50),
 email varchar (25),
